@@ -1,0 +1,57 @@
+<%- include('../layouts/admin-start') %>
+
+<section class="content-card">
+  <form action="/pendencias" method="get" class="filters-grid">
+    <label>
+      Status
+      <select name="status">
+        <option value="">Todos</option>
+        <% ['PENDENTE', 'EM_ANDAMENTO', 'CONCLUIDA', 'CANCELADA'].forEach((status) => { %>
+          <option value="<%= status %>" <%= filters.status === status ? 'selected' : '' %>><%= status %></option>
+        <% }) %>
+      </select>
+    </label>
+    <label class="checkbox-line">
+      <input type="checkbox" name="mine" value="true" <%= filters.mine === 'true' ? 'checked' : '' %>>
+      Minhas pendencias
+    </label>
+    <div class="filters-actions">
+      <button class="button button-primary" type="submit">Filtrar</button>
+      <a class="button button-ghost" href="/pendencias">Limpar</a>
+    </div>
+  </form>
+</section>
+
+<section class="content-card">
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Contrato</th><th>Empresa</th><th>Titulo</th><th>Prazo</th><th>Prioridade</th><th>Status</th><th>Acoes</th></tr></thead>
+      <tbody>
+        <% if (tasks.length === 0) { %><tr><td colspan="7" class="empty-state">Nenhuma pendencia encontrada.</td></tr><% } %>
+        <% tasks.forEach((task) => { %>
+          <tr>
+            <td><a class="table-link" href="/contratos/<%= task.contract_id %>#pendencias"><%= task.contract_key %></a></td>
+            <td class="wide-cell"><%= task.supplier_name %></td>
+            <td><%= task.title %></td>
+            <td><%= formatDate(task.due_date) %></td>
+            <td><%= task.priority %></td>
+            <td><span class="badge badge-muted"><%= task.status %></span></td>
+            <td>
+              <form action="/pendencias/<%= task.id %>/status" method="post" class="row-form">
+                <select name="status">
+                  <option value="PENDENTE">Pendente</option>
+                  <option value="EM_ANDAMENTO">Em andamento</option>
+                  <option value="CONCLUIDA">Concluida</option>
+                  <option value="CANCELADA">Cancelada</option>
+                </select>
+                <button class="button button-ghost" type="submit">Atualizar</button>
+              </form>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<%- include('../layouts/admin-end') %>

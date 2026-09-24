@@ -1,0 +1,16 @@
+<%- include('../layouts/admin-start') %>
+
+<section class="content-card narrow">
+  <form action="/configuracoes" method="post" class="form">
+    <% settings.forEach((setting) => { %>
+      <label>
+        <%= setting.key %>
+        <input type="text" name="settings[<%= setting.key %>]" value="<%= setting.value %>">
+        <small class="inline-muted"><%= setting.description || '' %></small>
+      </label>
+    <% }) %>
+    <button class="button button-primary" type="submit">Salvar configuracoes</button>
+  </form>
+</section>
+
+<%- include('../layouts/admin-end') %>

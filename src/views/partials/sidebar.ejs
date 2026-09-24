@@ -1,0 +1,32 @@
+<aside class="sidebar">
+  <div class="brand">
+    <span class="brand-mark">SC</span>
+    <div>
+      <strong>Contratos</strong>
+      <small>Sesc RN</small>
+    </div>
+  </div>
+
+  <nav class="nav">
+    <a href="/dashboard" class="<%= title === 'Dashboard' ? 'active' : '' %>">Dashboard</a>
+    <% if (currentUser && currentUser.permissions.includes('dashboards.view')) { %>
+      <a href="/dashboard/gerencia" class="<%= title === 'Dashboard Gerencial' ? 'active' : '' %>">Gerencial</a>
+    <% } %>
+    <a href="/contratos" class="<%= title === 'Contratos' || String(title || '').startsWith('Contrato ') ? 'active' : '' %>">Contratos</a>
+    <a href="/pendencias" class="<%= title === 'Pendencias' ? 'active' : '' %>">Pendencias</a>
+    <a href="/notificacoes" class="<%= title === 'Notificacoes' ? 'active' : '' %>">Alertas</a>
+    <% if (currentUser && currentUser.permissions.includes('imports.manage')) { %>
+      <a href="/importacoes" class="<%= title === 'Importar Dados' || title === 'Previa da Importacao' ? 'active' : '' %>">Importar Dados</a>
+    <% } %>
+    <% if (currentUser && currentUser.permissions.includes('reports.view')) { %>
+      <a href="/relatorios" class="<%= title === 'Relatorios' ? 'active' : '' %>">Relatorios</a>
+    <% } %>
+    <% if (currentUser && currentUser.permissions.includes('settings.manage')) { %>
+      <a href="/configuracoes" class="<%= title === 'Configuracoes' ? 'active' : '' %>">Configuracoes</a>
+      <a href="/admin/saude-da-base" class="<%= title === 'Saude da Base' ? 'active' : '' %>">Saude da Base</a>
+    <% } %>
+    <% if (currentUser && currentUser.permissions.includes('users.manage')) { %>
+      <a href="/usuarios" class="<%= title === 'Usuarios' ? 'active' : '' %>">Administracao</a>
+    <% } %>
+  </nav>
+</aside>

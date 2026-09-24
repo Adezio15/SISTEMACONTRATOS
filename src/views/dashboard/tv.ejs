@@ -1,0 +1,61 @@
+<%- include('../partials/head') %>
+<main class="tv-page">
+  <section class="tv-header">
+    <div>
+      <span>Sesc RN</span>
+      <h1>Carteira de Contratos</h1>
+    </div>
+    <div class="tv-clock">
+      <span>Base atualizada</span>
+      <strong data-tv-last-update>-</strong>
+      <small data-tv-generated-at>-</small>
+    </div>
+  </section>
+
+  <section class="tv-metrics">
+    <article>
+      <span>Contratos ativos</span>
+      <strong data-tv="active_contracts">0</strong>
+    </article>
+    <article>
+      <span>Vencem em ate 90 dias</span>
+      <strong data-tv="expiring_90_days">0</strong>
+    </article>
+    <article>
+      <span>Saldo <= 30%</span>
+      <strong data-tv="balance_warning_contracts">0</strong>
+    </article>
+    <article>
+      <span>Novos</span>
+      <strong data-tv="new_contracts">0</strong>
+    </article>
+  </section>
+
+  <section class="tv-grid">
+    <article class="tv-panel">
+      <h2>Contratos proximos ao vencimento</h2>
+      <div class="tv-list" data-tv-expiring></div>
+    </article>
+
+    <article class="tv-panel">
+      <h2>Contratos com saldo critico</h2>
+      <div class="tv-list" data-tv-critical></div>
+    </article>
+
+    <article class="tv-panel">
+      <h2>Grafico por status</h2>
+      <div class="tv-chart" data-tv-chart-status></div>
+    </article>
+
+    <article class="tv-panel">
+      <h2>Grafico por unidade</h2>
+      <div class="tv-chart" data-tv-chart-unit></div>
+    </article>
+  </section>
+</main>
+<script>
+  window.__TV_DASHBOARD__ = <%- JSON.stringify(dashboard).replace(/</g, '\\u003c') %>;
+</script>
+<script src="/js/tv-dashboard.js"></script>
+</body>
+</html>

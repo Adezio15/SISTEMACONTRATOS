@@ -1,0 +1,46 @@
+<%- include('../layouts/admin-start') %>
+
+<section class="toolbar split-toolbar">
+  <div class="table-summary">
+    <strong><%= unreadCount %></strong>
+    <span>nao lidas</span>
+  </div>
+  <form action="/notificacoes/marcar-todas" method="post">
+    <button class="button button-ghost" type="submit">Marcar todas como lidas</button>
+  </form>
+</section>
+
+<section class="content-card">
+  <div class="notification-list">
+    <% if (notifications.length === 0) { %>
+      <p class="empty-state">Nenhuma notificacao encontrada.</p>
+    <% } %>
+
+    <% notifications.forEach((notification) => { %>
+      <article class="notification-item <%= notification.read_at ? '' : 'unread' %>">
+        <div>
+          <h2><%= notification.title %></h2>
+          <p><%= notification.message %></p>
+          <small>
+            <%= formatDateTime(notification.created_at) %>
+            <% if (notification.contract_key) { %>
+              · Contrato <%= notification.contract_key %>
+            <% } %>
+          </small>
+        </div>
+        <div class="notification-actions">
+          <% if (notification.link_url) { %>
+            <a class="button button-ghost" href="<%= notification.link_url %>">Abrir</a>
+          <% } %>
+          <% if (!notification.read_at) { %>
+            <form action="/notificacoes/<%= notification.id %>/lida" method="post">
+              <button class="button button-primary" type="submit">Marcar lida</button>
+            </form>
+          <% } %>
+        </div>
+      </article>
+    <% }) %>
+  </div>
+</section>
+
+<%- include('../layouts/admin-end') %>

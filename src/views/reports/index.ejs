@@ -1,0 +1,66 @@
+<%- include('../layouts/admin-start') %>
+
+<section class="content-card">
+  <form action="/relatorios" method="get" class="filters-grid">
+    <label>
+      Status
+      <select name="status">
+        <option value="">Todos</option>
+        <% ['ATIVO', 'VENCIDO', 'CANCELADO', 'ENCERRADO', 'SUSPENSO'].forEach((status) => { %>
+          <option value="<%= status %>" <%= filters.status === status ? 'selected' : '' %>><%= status %></option>
+        <% }) %>
+      </select>
+    </label>
+    <label>
+      Unidade
+      <select name="unit">
+        <option value="">Todas</option>
+        <% options.units.forEach((unit) => { %>
+          <option value="<%= unit %>" <%= filters.unit === unit ? 'selected' : '' %>><%= unit %></option>
+        <% }) %>
+      </select>
+    </label>
+    <label>
+      Vencimento de
+      <input type="date" name="endFrom" value="<%= filters.endFrom || '' %>">
+    </label>
+    <label>
+      Vencimento ate
+      <input type="date" name="endTo" value="<%= filters.endTo || '' %>">
+    </label>
+    <label class="checkbox-line">
+      <input type="checkbox" name="criticalBalance" value="true" <%= filters.criticalBalance === 'true' ? 'checked' : '' %>>
+      Saldo <= 30%
+    </label>
+    <div class="filters-actions">
+      <button class="button button-primary" type="submit">Gerar</button>
+      <a class="button button-ghost" href="/relatorios/contratos.xlsx?<%= new URLSearchParams(filters).toString() %>">Excel</a>
+    </div>
+  </form>
+</section>
+
+<section class="content-card">
+  <div class="table-summary"><strong><%= rows.length %></strong><span>registros</span></div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Contrato</th><th>Fornecedor</th><th>Unidade</th><th>Status</th><th>Valor</th><th>Saldo</th><th>% saldo</th><th>Vencimento</th></tr></thead>
+      <tbody>
+        <% if (rows.length === 0) { %><tr><td colspan="8" class="empty-state">Nenhum registro encontrado.</td></tr><% } %>
+        <% rows.forEach((row) => { %>
+          <tr>
+            <td><%= row.contract_key %></td>
+            <td class="wide-cell"><%= row.supplier_name %></td>
+            <td><%= row.unit || '-' %></td>
+            <td><%= row.status %></td>
+            <td><%= formatCurrency(row.effective_value) %></td>
+            <td><%= formatCurrency(row.current_balance) %></td>
+            <td><%= formatPercent(row.balance_percentage) %></td>
+            <td><%= formatDate(row.end_date) %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<%- include('../layouts/admin-end') %>

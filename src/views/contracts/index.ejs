@@ -1,0 +1,163 @@
+<%- include('../layouts/admin-start') %>
+
+<section class="content-card">
+  <form action="/contratos" method="get" class="filters-grid">
+    <label>
+      Pesquisa
+      <input type="search" name="search" value="<%= filters.search || '' %>" placeholder="Contrato, fornecedor, CNPJ/CPF ou objeto">
+    </label>
+    <label>
+      Numero
+      <input type="text" name="contractNumber" value="<%= filters.contractNumber || '' %>">
+    </label>
+    <label>
+      Exercicio
+      <select name="year">
+        <option value="">Todos</option>
+        <% filterOptions.years.forEach((year) => { %>
+          <option value="<%= year %>" <%= String(filters.year || '') === String(year) ? 'selected' : '' %>><%= year %></option>
+        <% }) %>
+      </select>
+    </label>
+    <label>
+      Fornecedor
+      <input type="text" name="supplier" value="<%= filters.supplier || '' %>">
+    </label>
+    <label>
+      CNPJ/CPF
+      <input type="text" name="documentNumber" value="<%= filters.documentNumber || '' %>">
+    </label>
+    <label>
+      Unidade
+      <select name="unit">
+        <option value="">Todas</option>
+        <% filterOptions.units.forEach((unit) => { %>
+          <option value="<%= unit %>" <%= filters.unit === unit ? 'selected' : '' %>><%= unit %></option>
+        <% }) %>
+      </select>
+    </label>
+    <label>
+      Objeto
+      <input type="text" name="object" value="<%= filters.object || '' %>">
+    </label>
+    <label>
+      Status
+      <select name="status">
+        <option value="">Todos</option>
+        <% ['ATIVO', 'VENCIDO', 'CANCELADO', 'ENCERRADO', 'SUSPENSO'].forEach((status) => { %>
+          <option value="<%= status %>" <%= filters.status === status ? 'selected' : '' %>><%= status %></option>
+        <% }) %>
+      </select>
+    </label>
+    <label>
+      Analista
+      <input type="text" name="analyst" value="<%= filters.analyst || '' %>">
+    </label>
+    <label>
+      Fiscal
+      <input type="text" name="fiscal" value="<%= filters.fiscal || '' %>">
+    </label>
+    <label>
+      Gestor
+      <input type="text" name="manager" value="<%= filters.manager || '' %>">
+    </label>
+    <label>
+      Vencimento de
+      <input type="date" name="endFrom" value="<%= filters.endFrom || '' %>">
+    </label>
+    <label>
+      Vencimento ate
+      <input type="date" name="endTo" value="<%= filters.endTo || '' %>">
+    </label>
+    <label>
+      Saldo minimo
+      <input type="number" step="0.01" name="balanceMin" value="<%= filters.balanceMin || '' %>">
+    </label>
+    <label>
+      Saldo maximo
+      <input type="number" step="0.01" name="balanceMax" value="<%= filters.balanceMax || '' %>">
+    </label>
+    <label>
+      % saldo ate
+      <input type="number" step="0.01" name="balancePercentageMax" value="<%= filters.balancePercentageMax || '' %>">
+    </label>
+    <label>
+      Ordenar por
+      <select name="sort">
+        <option value="end_date" <%= sort.field === 'end_date' ? 'selected' : '' %>>Vencimento</option>
+        <option value="contract_key" <%= sort.field === 'contract_key' ? 'selected' : '' %>>Contrato</option>
+        <option value="supplier_name" <%= sort.field === 'supplier_name' ? 'selected' : '' %>>Fornecedor</option>
+        <option value="updated_value" <%= sort.field === 'updated_value' ? 'selected' : '' %>>Valor</option>
+        <option value="current_balance" <%= sort.field === 'current_balance' ? 'selected' : '' %>>Saldo</option>
+        <option value="balance_percentage" <%= sort.field === 'balance_percentage' ? 'selected' : '' %>>% saldo</option>
+      </select>
+    </label>
+    <label>
+      Direcao
+      <select name="direction">
+        <option value="asc" <%= sort.direction === 'asc' ? 'selected' : '' %>>Crescente</option>
+        <option value="desc" <%= sort.direction === 'desc' ? 'selected' : '' %>>Decrescente</option>
+      </select>
+    </label>
+    <div class="filters-actions">
+      <button class="button button-primary" type="submit">Filtrar</button>
+      <a class="button button-ghost" href="/contratos">Limpar</a>
+    </div>
+  </form>
+</section>
+
+<section class="content-card">
+  <div class="table-summary">
+    <strong><%= pagination.total %></strong>
+    <span>contratos encontrados</span>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Contrato</th>
+          <th>Fornecedor</th>
+          <th>Unidade</th>
+          <th>Valor atualizado</th>
+          <th>Saldo</th>
+          <th>% saldo</th>
+          <th>Vencimento</th>
+          <th>Status</th>
+          <th>Analista</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (contracts.length === 0) { %>
+          <tr>
+            <td colspan="9" class="empty-state">Nenhum contrato encontrado.</td>
+          </tr>
+        <% } %>
+        <% contracts.forEach((contract) => { %>
+          <% const analyst = contract.responsibles.find((item) => item.role === 'ANALISTA'); %>
+          <tr>
+            <td><a class="table-link" href="/contratos/<%= contract.id %>"><%= contract.contract_key %></a></td>
+            <td class="wide-cell"><%= contract.supplier_name %></td>
+            <td><%= contract.unit || '-' %></td>
+            <td><%= formatCurrency(contract.effective_value) %></td>
+            <td><%= formatCurrency(contract.current_balance) %></td>
+            <td><span class="badge balance-<%= contract.balance_classification.toLowerCase() %>"><%= formatPercent(contract.balance_percentage) %></span></td>
+            <td><%= formatDate(contract.end_date) %></td>
+            <td><span class="badge status-<%= contract.calculated_status.toLowerCase() %>"><%= contract.calculated_status %></span></td>
+            <td><%= analyst ? analyst.name : '-' %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="pagination">
+    <% const previousPage = Math.max(pagination.page - 1, 1); %>
+    <% const nextPage = Math.min(pagination.page + 1, pagination.totalPages); %>
+    <a class="button button-ghost <%= pagination.page === 1 ? 'disabled' : '' %>" href="<%= makePageUrl(previousPage) %>">Anterior</a>
+    <span>Pagina <%= pagination.page %> de <%= pagination.totalPages %></span>
+    <a class="button button-ghost <%= pagination.page === pagination.totalPages ? 'disabled' : '' %>" href="<%= makePageUrl(nextPage) %>">Proxima</a>
+  </div>
+</section>
+
+<%- include('../layouts/admin-end') %>

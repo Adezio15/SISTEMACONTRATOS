@@ -1,0 +1,214 @@
+<%- include('../layouts/admin-start') %>
+
+<section class="contract-hero">
+  <div>
+    <span class="eyebrow">Contrato</span>
+    <h2><%= contract.contract_key %></h2>
+    <p><%= contract.object %></p>
+  </div>
+  <div class="contract-hero-grid">
+    <div>
+      <span>Fornecedor</span>
+      <strong><%= contract.supplier_name %></strong>
+      <small><%= contract.document_number || '-' %></small>
+    </div>
+    <div>
+      <span>Status</span>
+      <strong><%= contract.calculated_status %></strong>
+      <small>Origem: <%= contract.source %></small>
+    </div>
+    <div>
+      <span>Valor</span>
+      <strong><%= formatCurrency(contract.effective_value) %></strong>
+      <small>Inicial: <%= formatCurrency(contract.initial_value) %></small>
+    </div>
+    <div>
+      <span>Saldo</span>
+      <strong><%= formatCurrency(contract.current_balance) %></strong>
+      <small><%= formatPercent(contract.balance_percentage) %></small>
+    </div>
+    <div>
+      <span>Vencimento</span>
+      <strong><%= formatDate(contract.end_date) %></strong>
+      <small>Inicio: <%= formatDate(contract.start_date) %></small>
+    </div>
+  </div>
+</section>
+
+<section class="tabs">
+  <a class="active" href="#resumo">Resumo</a>
+  <a href="#financeiro">Financeiro</a>
+  <a href="#responsaveis">Responsaveis</a>
+  <a href="#documentos">Documentos</a>
+  <a href="#pendencias">Pendencias</a>
+  <a href="#observacoes">Observacoes</a>
+  <a href="#historico">Historico</a>
+</section>
+
+<section id="resumo" class="content-card detail-section">
+  <h2>Resumo</h2>
+  <dl class="detail-grid">
+    <div><dt>Numero</dt><dd><%= contract.contract_number %></dd></div>
+    <div><dt>Exercicio</dt><dd><%= contract.contract_year %></dd></div>
+    <div><dt>Unidade</dt><dd><%= contract.unit || '-' %></dd></div>
+    <div><dt>Status externo</dt><dd><%= contract.external_status || '-' %></dd></div>
+    <div><dt>Ultima importacao</dt><dd><%= formatDate(contract.last_imported_at) %></dd></div>
+    <div><dt>Entrada na base</dt><dd><%= formatDate(contract.first_imported_at || contract.created_at) %></dd></div>
+  </dl>
+</section>
+
+<section id="financeiro" class="content-card detail-section">
+  <h2>Financeiro</h2>
+  <dl class="detail-grid">
+    <div><dt>Valor inicial</dt><dd><%= formatCurrency(contract.initial_value) %></dd></div>
+    <div><dt>Valor atualizado</dt><dd><%= formatCurrency(contract.updated_value) %></dd></div>
+    <div><dt>Saldo atual</dt><dd><%= formatCurrency(contract.current_balance) %></dd></div>
+    <div><dt>Percentual disponivel</dt><dd><%= formatPercent(contract.balance_percentage) %></dd></div>
+    <div><dt>Classificacao</dt><dd><%= contract.balance_classification %></dd></div>
+  </dl>
+</section>
+
+<section id="responsaveis" class="content-card detail-section">
+  <h2>Responsaveis</h2>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Papel</th>
+          <th>Nome</th>
+          <th>Matricula</th>
+          <th>E-mail</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (responsibles.length === 0) { %>
+          <tr><td colspan="4" class="empty-state">Nenhum responsavel vinculado.</td></tr>
+        <% } %>
+        <% responsibles.forEach((responsible) => { %>
+          <tr>
+            <td><%= responsible.role %></td>
+            <td><%= responsible.display_name %></td>
+            <td><%= responsible.display_registration || '-' %></td>
+            <td><%= responsible.display_email || '-' %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="documentos" class="content-card detail-section">
+  <h2>Documentos</h2>
+  <% if (canManageContracts) { %>
+    <form action="/contratos/<%= contract.id %>/documentos" method="post" enctype="multipart/form-data" class="inline-form">
+      <select name="category" required>
+        <option value="CONTRATO">Contrato</option>
+        <option value="TERMO_ADITIVO">Termo aditivo</option>
+        <option value="APOSTILAMENTO">Apostilamento</option>
+        <option value="PROPOSTA">Proposta</option>
+        <option value="PARECER">Parecer</option>
+        <option value="DOCUMENTACAO_FORNECEDOR">Documentacao do fornecedor</option>
+        <option value="OUTROS">Outros</option>
+      </select>
+      <input type="text" name="description" placeholder="Descricao">
+      <input type="file" name="file" required>
+      <button class="button button-primary" type="submit">Anexar</button>
+    </form>
+  <% } %>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Categoria</th><th>Arquivo</th><th>Usuario</th><th>Data</th></tr></thead>
+      <tbody>
+        <% if (documents.length === 0) { %><tr><td colspan="4" class="empty-state">Nenhum documento anexado.</td></tr><% } %>
+        <% documents.forEach((document) => { %>
+          <tr>
+            <td><%= document.category %></td>
+            <td><%= document.original_name %><small class="inline-muted"><%= document.description || '' %></small></td>
+            <td><%= document.user_name || '-' %></td>
+            <td><%= formatDate(document.created_at) %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="pendencias" class="content-card detail-section">
+  <h2>Pendencias</h2>
+  <% if (canManageContracts) { %>
+    <form action="/contratos/<%= contract.id %>/pendencias" method="post" class="inline-form">
+      <input type="text" name="title" placeholder="Titulo da pendencia" required>
+      <input type="date" name="dueDate">
+      <select name="priority">
+        <option value="BAIXA">Baixa</option>
+        <option value="NORMAL" selected>Normal</option>
+        <option value="ALTA">Alta</option>
+        <option value="URGENTE">Urgente</option>
+      </select>
+      <button class="button button-primary" type="submit">Criar</button>
+    </form>
+  <% } %>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Titulo</th><th>Prazo</th><th>Prioridade</th><th>Status</th><th>Responsavel</th></tr></thead>
+      <tbody>
+        <% if (tasks.length === 0) { %><tr><td colspan="5" class="empty-state">Nenhuma pendencia vinculada.</td></tr><% } %>
+        <% tasks.forEach((task) => { %>
+          <tr>
+            <td><%= task.title %></td>
+            <td><%= formatDate(task.due_date) %></td>
+            <td><%= task.priority %></td>
+            <td><span class="badge badge-muted"><%= task.status %></span></td>
+            <td><%= task.responsible_name || '-' %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="observacoes" class="content-card detail-section">
+  <h2>Observacoes</h2>
+  <% if (canManageContracts) { %>
+    <form action="/contratos/<%= contract.id %>/observacoes" method="post" class="form compact-form">
+      <label>
+        Nova observacao
+        <textarea name="note" rows="3" required></textarea>
+      </label>
+      <button class="button button-primary" type="submit">Registrar</button>
+    </form>
+  <% } %>
+  <div class="note-list">
+    <% if (notes.length === 0) { %><p class="empty-state">Nenhuma observacao registrada.</p><% } %>
+    <% notes.forEach((note) => { %>
+      <article>
+        <p><%= note.note %></p>
+        <small><%= note.user_name || '-' %> · <%= formatDate(note.created_at) %></small>
+      </article>
+    <% }) %>
+  </div>
+</section>
+
+<section id="historico" class="content-card detail-section">
+  <h2>Historico</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Campo</th><th>Anterior</th><th>Novo</th><th>Origem</th><th>Usuario</th><th>Data</th></tr></thead>
+      <tbody>
+        <% if (history.length === 0) { %><tr><td colspan="6" class="empty-state">Nenhum historico registrado.</td></tr><% } %>
+        <% history.forEach((item) => { %>
+          <tr>
+            <td><%= item.field_name %></td>
+            <td><%= item.old_value || '-' %></td>
+            <td><%= item.new_value || '-' %></td>
+            <td><%= item.change_source %></td>
+            <td><%= item.user_name || '-' %></td>
+            <td><%= formatDate(item.created_at) %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<%- include('../layouts/admin-end') %>

@@ -1,0 +1,34 @@
+<%- include('../layouts/admin-start') %>
+<section class="toolbar">
+  <a class="button button-primary" href="/usuarios/novo">Novo usuario</a>
+</section>
+
+<section class="content-card">
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Matricula</th>
+          <th>E-mail</th>
+          <th>Cargo</th>
+          <th>Perfil</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% users.forEach((user) => { %>
+          <tr>
+            <td><%= user.full_name %></td>
+            <td><%= user.registration %></td>
+            <td><%= user.email %></td>
+            <td><%= user.position || '-' %></td>
+            <td><%= user.role_name %></td>
+            <td><span class="badge <%= user.active ? 'badge-success' : 'badge-muted' %>"><%= user.active ? 'Ativo' : 'Inativo' %></span></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</section>
+<%- include('../layouts/admin-end') %>

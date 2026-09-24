@@ -1,0 +1,36 @@
+<%- include('../layouts/admin-start') %>
+<section class="content-card narrow">
+  <form action="/usuarios" method="post" class="form">
+    <label>
+      Nome completo
+      <input type="text" name="fullName" required>
+    </label>
+    <label>
+      Matricula
+      <input type="text" name="registration" required>
+    </label>
+    <label>
+      E-mail institucional
+      <input type="email" name="email" required>
+    </label>
+    <label>
+      Cargo
+      <input type="text" name="position">
+    </label>
+    <label>
+      Perfil
+      <select name="roleId" required>
+        <option value="">Selecione</option>
+        <% roles.forEach((role) => { %>
+          <option value="<%= role.id %>"><%= role.name %></option>
+        <% }) %>
+      </select>
+    </label>
+    <label>
+      Senha
+      <input type="password" name="password" minlength="8" required>
+    </label>
+    <button class="button button-primary" type="submit">Salvar usuario</button>
+  </form>
+</section>
+<%- include('../layouts/admin-end') %>

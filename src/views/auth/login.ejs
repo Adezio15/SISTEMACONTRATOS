@@ -1,0 +1,35 @@
+<%- include('../partials/head') %>
+<main class="auth-page">
+  <section class="auth-panel">
+    <div class="auth-brand">
+      <span class="brand-mark">SC</span>
+      <div>
+        <strong>Sistema de Contratos</strong>
+        <small>Sesc RN</small>
+      </div>
+    </div>
+
+    <h1>Entrar</h1>
+    <p>Acesse com sua matricula e senha.</p>
+
+    <%- include('../partials/flash') %>
+
+    <form action="/login" method="post" class="form">
+      <label>
+        Matricula
+        <input type="text" name="registration" autocomplete="username" required autofocus>
+      </label>
+
+      <label>
+        Senha
+        <input type="password" name="password" autocomplete="current-password" required>
+      </label>
+
+      <button class="button button-primary" type="submit">Entrar</button>
+    </form>
+
+    <a class="muted-link" href="/senha/esqueci">Esqueci minha senha</a>
+  </section>
+</main>
+</body>
+</html>

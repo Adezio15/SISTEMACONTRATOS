@@ -1,0 +1,20 @@
+<header class="topbar">
+  <div>
+    <h1><%= title %></h1>
+    <p>Ambiente interno de acompanhamento de contratos</p>
+  </div>
+
+  <div class="user-menu">
+    <a class="notification-button" href="/notificacoes" aria-label="Notificacoes">
+      <span>Notificacoes</span>
+      <% if (unreadNotifications > 0) { %>
+        <strong><%= unreadNotifications %></strong>
+      <% } %>
+    </a>
+    <span><%= currentUser.name %></span>
+    <small><%= currentUser.roleName %></small>
+    <form action="/logout" method="post">
+      <button class="button button-ghost" type="submit">Sair</button>
+    </form>
+  </div>
+</header>

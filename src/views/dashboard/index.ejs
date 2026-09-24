@@ -1,0 +1,105 @@
+<%- include('../layouts/admin-start') %>
+<section class="metric-grid">
+  <article class="metric-card">
+    <span>Meus contratos</span>
+    <strong><%= dashboard.metrics.my_contracts %></strong>
+    <small>vinculados ao seu usuario</small>
+  </article>
+  <article class="metric-card">
+    <span>Contratos vencendo</span>
+    <strong><%= dashboard.metrics.expiring_contracts %></strong>
+    <small>ate 90 dias</small>
+  </article>
+  <article class="metric-card">
+    <span>Saldo critico</span>
+    <strong><%= dashboard.metrics.critical_balance_contracts %></strong>
+    <small>saldo ate 10%</small>
+  </article>
+  <article class="metric-card">
+    <span>Pendencias</span>
+    <strong><%= dashboard.metrics.pending_tasks %></strong>
+    <small>pendentes ou em andamento</small>
+  </article>
+  <article class="metric-card">
+    <span>Pendencias atrasadas</span>
+    <strong><%= dashboard.metrics.overdue_tasks %></strong>
+    <small>prazo vencido</small>
+  </article>
+  <article class="metric-card">
+    <span>Novas notificacoes</span>
+    <strong><%= dashboard.metrics.new_notifications %></strong>
+    <small>reservado para alertas</small>
+  </article>
+</section>
+
+<section class="content-card">
+  <h2>Minhas prioridades</h2>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Contrato</th>
+          <th>Empresa</th>
+          <th>Vencimento</th>
+          <th>Saldo</th>
+          <th>Pendencia</th>
+          <th>Situacao</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (dashboard.priorities.length === 0) { %>
+          <tr><td colspan="6" class="empty-state">Nenhuma prioridade critica encontrada.</td></tr>
+        <% } %>
+        <% dashboard.priorities.forEach((item) => { %>
+          <tr>
+            <td><a class="table-link" href="/contratos/<%= item.id %>"><%= item.contract_key %></a></td>
+            <td class="wide-cell"><%= item.supplier_name %></td>
+            <td><%= formatDate(item.end_date) %></td>
+            <td>
+              <%= formatCurrency(item.current_balance) %>
+              <small class="inline-muted"><%= formatPercent(item.balance_percentage) %></small>
+            </td>
+            <td><%= item.task_title || '-' %></td>
+            <td><span class="badge situation-<%= item.situation.toLowerCase() %>"><%= item.situation %></span></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="dashboard-grid">
+  <article class="content-card">
+    <h2>Vencimentos</h2>
+    <div class="bucket-list">
+      <div>
+        <span>0-30 dias</span>
+        <strong><%= dashboard.expirationBuckets.days_0_30 %></strong>
+      </div>
+      <div>
+        <span>31-60 dias</span>
+        <strong><%= dashboard.expirationBuckets.days_31_60 %></strong>
+      </div>
+      <div>
+        <span>61-90 dias</span>
+        <strong><%= dashboard.expirationBuckets.days_61_90 %></strong>
+      </div>
+    </div>
+  </article>
+
+  <article class="content-card">
+    <h2>Saldo critico</h2>
+    <div class="compact-stack">
+      <% if (dashboard.criticalBalanceContracts.length === 0) { %>
+        <p class="muted-text">Nenhum contrato com saldo critico.</p>
+      <% } %>
+      <% dashboard.criticalBalanceContracts.forEach((contract) => { %>
+        <a class="priority-link" href="/contratos/<%= contract.id %>">
+          <span><%= contract.contract_key %> - <%= contract.supplier_name %></span>
+          <strong><%= formatPercent(contract.balance_percentage) %></strong>
+        </a>
+      <% }) %>
+    </div>
+  </article>
+</section>
+<%- include('../layouts/admin-end') %>

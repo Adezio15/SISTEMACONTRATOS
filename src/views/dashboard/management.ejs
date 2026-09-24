@@ -1,0 +1,125 @@
+<%- include('../layouts/admin-start') %>
+
+<section class="metric-grid management-metrics">
+  <article class="metric-card">
+    <span>Contratos ativos</span>
+    <strong><%= dashboard.metrics.active_contracts %></strong>
+    <small>em acompanhamento</small>
+  </article>
+  <article class="metric-card">
+    <span>Total de contratos</span>
+    <strong><%= dashboard.metrics.total_contracts %></strong>
+    <small>base atual</small>
+  </article>
+  <article class="metric-card">
+    <span>Vencem em 90 dias</span>
+    <strong><%= dashboard.metrics.expiring_90_days %></strong>
+    <small>contratos ativos</small>
+  </article>
+  <article class="metric-card">
+    <span>Vencem em 30 dias</span>
+    <strong><%= dashboard.metrics.expiring_30_days %></strong>
+    <small>maior urgencia</small>
+  </article>
+  <article class="metric-card">
+    <span>Saldo <= 30%</span>
+    <strong><%= dashboard.metrics.balance_warning_contracts %></strong>
+    <small>atencao financeira</small>
+  </article>
+  <article class="metric-card">
+    <span>Saldo <= 10%</span>
+    <strong><%= dashboard.metrics.balance_critical_contracts %></strong>
+    <small>critico</small>
+  </article>
+  <article class="metric-card">
+    <span>Contratos novos</span>
+    <strong><%= dashboard.metrics.new_contracts %></strong>
+    <small>ultimos 30 dias</small>
+  </article>
+  <article class="metric-card">
+    <span>Pendencias</span>
+    <strong><%= dashboard.metrics.pending_tasks %></strong>
+    <small>pendentes ou em andamento</small>
+  </article>
+</section>
+
+<section class="finance-strip">
+  <article>
+    <span>Valor total contratado</span>
+    <strong><%= formatCurrency(dashboard.metrics.total_contract_value) %></strong>
+  </article>
+  <article>
+    <span>Saldo total disponivel</span>
+    <strong><%= formatCurrency(dashboard.metrics.total_available_balance) %></strong>
+  </article>
+</section>
+
+<section class="charts-grid">
+  <%- include('../partials/bar-chart', { title: 'Contratos por status', items: dashboard.charts.byStatus }) %>
+  <%- include('../partials/bar-chart', { title: 'Contratos por unidade', items: dashboard.charts.byUnit }) %>
+  <%- include('../partials/bar-chart', { title: 'Contratos por analista', items: dashboard.charts.byAnalyst }) %>
+  <%- include('../partials/bar-chart', { title: 'Faixa de vencimento', items: dashboard.charts.byExpirationRange }) %>
+  <%- include('../partials/bar-chart', { title: 'Faixa de saldo', items: dashboard.charts.byBalanceRange }) %>
+</section>
+
+<section class="dashboard-grid">
+  <article class="content-card">
+    <h2>Proximos vencimentos</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Contrato</th>
+            <th>Empresa</th>
+            <th>Unidade</th>
+            <th>Vencimento</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (dashboard.expiringContracts.length === 0) { %>
+            <tr><td colspan="4" class="empty-state">Nenhum contrato vencendo em ate 90 dias.</td></tr>
+          <% } %>
+          <% dashboard.expiringContracts.forEach((contract) => { %>
+            <tr>
+              <td><a class="table-link" href="/contratos/<%= contract.id %>"><%= contract.contract_key %></a></td>
+              <td class="wide-cell"><%= contract.supplier_name %></td>
+              <td><%= contract.unit || '-' %></td>
+              <td><%= formatDate(contract.end_date) %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </article>
+
+  <article class="content-card">
+    <h2>Saldo em atencao</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Contrato</th>
+            <th>Empresa</th>
+            <th>Unidade</th>
+            <th>% saldo</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (dashboard.criticalBalanceContracts.length === 0) { %>
+            <tr><td colspan="4" class="empty-state">Nenhum contrato com saldo ate 30%.</td></tr>
+          <% } %>
+          <% dashboard.criticalBalanceContracts.forEach((contract) => { %>
+            <tr>
+              <td><a class="table-link" href="/contratos/<%= contract.id %>"><%= contract.contract_key %></a></td>
+              <td class="wide-cell"><%= contract.supplier_name %></td>
+              <td><%= contract.unit || '-' %></td>
+              <td><span class="badge <%= Number(contract.balance_percentage) <= 10 ? 'balance-critico' : 'balance-atencao' %>"><%= formatPercent(contract.balance_percentage) %></span></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </article>
+</section>
+
+<%- include('../layouts/admin-end') %>

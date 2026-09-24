@@ -1,0 +1,110 @@
+<%- include('../layouts/admin-start') %>
+
+<section class="content-card import-summary">
+  <div>
+    <span>Arquivo</span>
+    <strong><%= importRecord.filename %></strong>
+    <small>Enviado por <%= importRecord.user_name || '-' %> em <%= formatDateTime(importRecord.created_at) %></small>
+  </div>
+  <div>
+    <span>Status</span>
+    <strong><%= importRecord.status %></strong>
+    <small>Alteracoes definitivas so ocorrem apos confirmacao</small>
+  </div>
+</section>
+
+<section class="metric-grid">
+  <article class="metric-card">
+    <span>Total encontrados</span>
+    <strong><%= importRecord.total_rows %></strong>
+    <small>linhas lidas</small>
+  </article>
+  <article class="metric-card">
+    <span>Sem alteracoes</span>
+    <strong><%= importRecord.unchanged_records %></strong>
+    <small>iguais ao banco</small>
+  </article>
+  <article class="metric-card">
+    <span>Atualizados</span>
+    <strong><%= importRecord.updated_records %></strong>
+    <small>com diferencas</small>
+  </article>
+  <article class="metric-card">
+    <span>Novos</span>
+    <strong><%= importRecord.new_records %></strong>
+    <small>serao inseridos</small>
+  </article>
+  <article class="metric-card">
+    <span>Possiveis ausentes</span>
+    <strong><%= importRecord.possible_absent_records %></strong>
+    <small>existem no banco e nao vieram no arquivo</small>
+  </article>
+  <article class="metric-card">
+    <span>Erros</span>
+    <strong><%= importRecord.error_records %></strong>
+    <small>nao processaveis</small>
+  </article>
+</section>
+
+<section class="toolbar split-toolbar">
+  <a class="button button-ghost" href="/importacoes">Cancelar</a>
+  <% if (importRecord.status === 'READY') { %>
+    <form action="/importacoes/<%= importRecord.id %>/confirmar" method="post">
+      <button class="button button-primary" type="submit" <%= importRecord.error_records > 0 ? 'disabled' : '' %>>Confirmar importacao</button>
+    </form>
+  <% } %>
+</section>
+
+<section class="content-card">
+  <h2>Alteracoes identificadas</h2>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Linha</th>
+          <th>Contrato</th>
+          <th>Resultado</th>
+          <th>Fornecedor</th>
+          <th>Objeto</th>
+          <th>Diferencas / erros</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% rows.forEach((row) => { %>
+          <% const normalized = row.normalized_data || {}; %>
+          <% const differences = row.differences || []; %>
+          <% const errors = row.errors || []; %>
+          <tr>
+            <td><%= row.row_number %></td>
+            <td><%= row.contract_key || '-' %></td>
+            <td><span class="badge import-action-<%= row.action.toLowerCase() %>"><%= row.action %></span></td>
+            <td class="wide-cell"><%= normalized.supplier_name || '-' %></td>
+            <td class="wide-cell"><%= normalized.object || '-' %></td>
+            <td class="wide-cell">
+              <% if (errors.length > 0) { %>
+                <ul class="compact-list">
+                  <% errors.forEach((error) => { %>
+                    <li><%= error %></li>
+                  <% }) %>
+                </ul>
+              <% } else if (differences.length > 0) { %>
+                <ul class="compact-list">
+                  <% differences.slice(0, 5).forEach((difference) => { %>
+                    <li><strong><%= difference.field %></strong>: <%= difference.oldValue || '-' %> -> <%= difference.newValue || '-' %></li>
+                  <% }) %>
+                  <% if (differences.length > 5) { %>
+                    <li>+ <%= differences.length - 5 %> alteracoes</li>
+                  <% } %>
+                </ul>
+              <% } else { %>
+                -
+              <% } %>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<%- include('../layouts/admin-end') %>

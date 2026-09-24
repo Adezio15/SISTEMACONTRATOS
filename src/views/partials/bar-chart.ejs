@@ -1,0 +1,19 @@
+<article class="content-card chart-card">
+  <h2><%= title %></h2>
+  <% const maxValue = getChartMaxValue(items); %>
+  <div class="bar-chart">
+    <% if (items.length === 0) { %>
+      <p class="muted-text">Sem dados para exibir.</p>
+    <% } %>
+    <% items.forEach((item) => { %>
+      <% const value = Number(item.value || 0); %>
+      <div class="bar-row">
+        <span class="bar-label"><%= item.label %></span>
+        <div class="bar-track">
+          <span class="bar-fill" style="width: <%= getBarWidth(value, maxValue) %>%"></span>
+        </div>
+        <strong><%= value %></strong>
+      </div>
+    <% }) %>
+  </div>
+</article>

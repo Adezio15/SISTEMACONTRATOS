@@ -1,0 +1,40 @@
+<%- include('../layouts/admin-start') %>
+
+<section class="metric-grid">
+  <article class="metric-card">
+    <span>Total de contratos</span>
+    <strong><%= health.total_contracts %></strong>
+    <small>registros na base</small>
+  </article>
+  <article class="metric-card">
+    <span>Contratos ativos</span>
+    <strong><%= health.active_contracts %></strong>
+    <small>em acompanhamento</small>
+  </article>
+  <article class="metric-card">
+    <span>Importacoes</span>
+    <strong><%= health.total_imports %></strong>
+    <small>historico registrado</small>
+  </article>
+</section>
+
+<section class="content-card">
+  <h2>Ultima atualizacao</h2>
+  <% if (!health.latest_import) { %>
+    <p class="empty-state">Nenhuma importacao registrada.</p>
+  <% } else { %>
+    <dl class="detail-grid">
+      <div><dt>Arquivo</dt><dd><%= health.latest_import.filename %></dd></div>
+      <div><dt>Status</dt><dd><%= health.latest_import.status %></dd></div>
+      <div><dt>Usuario</dt><dd><%= health.latest_import.user_name || '-' %></dd></div>
+      <div><dt>Registros</dt><dd><%= health.latest_import.total_rows %></dd></div>
+      <div><dt>Novos</dt><dd><%= health.latest_import.new_records %></dd></div>
+      <div><dt>Atualizados</dt><dd><%= health.latest_import.updated_records %></dd></div>
+      <div><dt>Erros</dt><dd><%= health.latest_import.error_records %></dd></div>
+      <div><dt>Criada em</dt><dd><%= formatDateTime(health.latest_import.created_at) %></dd></div>
+      <div><dt>Finalizada em</dt><dd><%= formatDateTime(health.latest_import.finished_at) %></dd></div>
+    </dl>
+  <% } %>
+</section>
+
+<%- include('../layouts/admin-end') %>

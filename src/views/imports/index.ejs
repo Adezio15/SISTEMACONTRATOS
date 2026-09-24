@@ -1,0 +1,55 @@
+<%- include('../layouts/admin-start') %>
+
+<section class="content-card narrow">
+  <h2>Nova importacao</h2>
+  <form action="/importacoes" method="post" enctype="multipart/form-data" class="form">
+    <label>
+      Arquivo Excel ou CSV
+      <input type="file" name="file" accept=".xlsx,.xls,.csv" required>
+    </label>
+    <button class="button button-primary" type="submit">Validar arquivo</button>
+  </form>
+</section>
+
+<section class="content-card">
+  <h2>Historico de importacoes</h2>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Arquivo</th>
+          <th>Usuario</th>
+          <th>Status</th>
+          <th>Total</th>
+          <th>Novos</th>
+          <th>Atualizados</th>
+          <th>Sem alteracao</th>
+          <th>Possiveis ausentes</th>
+          <th>Erros</th>
+          <th>Data</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (imports.length === 0) { %>
+          <tr><td colspan="10" class="empty-state">Nenhuma importacao registrada.</td></tr>
+        <% } %>
+        <% imports.forEach((item) => { %>
+          <tr>
+            <td><a class="table-link" href="/importacoes/<%= item.id %>"><%= item.filename %></a></td>
+            <td><%= item.user_name || '-' %></td>
+            <td><span class="badge import-<%= item.status.toLowerCase() %>"><%= item.status %></span></td>
+            <td><%= item.total_rows %></td>
+            <td><%= item.new_records %></td>
+            <td><%= item.updated_records %></td>
+            <td><%= item.unchanged_records %></td>
+            <td><%= item.possible_absent_records %></td>
+            <td><%= item.error_records %></td>
+            <td><%= formatDateTime(item.created_at) %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<%- include('../layouts/admin-end') %>
