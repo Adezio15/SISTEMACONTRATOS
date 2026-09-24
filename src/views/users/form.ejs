@@ -1,36 +1,52 @@
 <%- include('../layouts/admin-start') %>
 <section class="content-card narrow">
-  <form action="/usuarios" method="post" class="form">
+  <form action="<%= formAction %>" method="post" class="form">
     <label>
       Nome completo
-      <input type="text" name="fullName" required>
+      <input type="text" name="fullName" value="<%= user.full_name || '' %>" required>
     </label>
     <label>
       Matricula
-      <input type="text" name="registration" required>
+      <input type="text" name="registration" value="<%= user.registration || '' %>" required>
     </label>
     <label>
       E-mail institucional
-      <input type="email" name="email" required>
+      <input type="email" name="email" value="<%= user.email || '' %>" required>
     </label>
     <label>
       Cargo
-      <input type="text" name="position">
+      <input type="text" name="position" value="<%= user.position || '' %>">
     </label>
     <label>
       Perfil
       <select name="roleId" required>
         <option value="">Selecione</option>
         <% roles.forEach((role) => { %>
-          <option value="<%= role.id %>"><%= role.name %></option>
+          <option value="<%= role.id %>" <%= String(user.role_id || '') === String(role.id) ? 'selected' : '' %>><%= role.name %></option>
         <% }) %>
       </select>
     </label>
-    <label>
-      Senha
-      <input type="password" name="password" minlength="8" required>
+    <% if (!isEditing) { %>
+      <label>
+        Senha
+        <input type="password" name="password" minlength="8" required>
+      </label>
+    <% } %>
+    <label class="checkbox-line">
+      <input type="checkbox" name="active" value="true" <%= user.active === false ? '' : 'checked' %>>
+      Usuario ativo
     </label>
     <button class="button button-primary" type="submit">Salvar usuario</button>
   </form>
 </section>
+
+<% if (isEditing) { %>
+  <section class="content-card narrow spacing-top">
+    <h2>Redefinir senha</h2>
+    <form action="/usuarios/<%= user.id %>/senha" method="post" class="inline-form">
+      <input type="password" name="newPassword" minlength="8" placeholder="Nova senha" required>
+      <button class="button button-ghost" type="submit">Redefinir senha</button>
+    </form>
+  </section>
+<% } %>
 <%- include('../layouts/admin-end') %>

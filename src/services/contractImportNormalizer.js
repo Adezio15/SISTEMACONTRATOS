@@ -72,7 +72,25 @@ function normalizeStatus(value) {
     return status;
   }
 
+  if (status.startsWith('ATIVO')) return 'ATIVO';
+  if (status.includes('VENC')) return 'VENCIDO';
+  if (status.includes('CANCEL')) return 'CANCELADO';
+  if (status.includes('ENCERR')) return 'ENCERRADO';
+  if (status.includes('SUSP')) return 'SUSPENSO';
+
   return 'ATIVO';
+}
+
+function inferContractYear(contractNumber, explicitYear) {
+  const parsedYear = Number.parseInt(explicitYear, 10);
+
+  if (Number.isInteger(parsedYear)) {
+    return parsedYear;
+  }
+
+  const match = String(contractNumber || '').match(/(?:^|\D)(20\d{2}|19\d{2})(?:\D|$)/);
+
+  return match ? Number.parseInt(match[1], 10) : null;
 }
 
 function pick(row, headerMap, field) {
@@ -83,8 +101,9 @@ function pick(row, headerMap, field) {
 function normalizeContractImportRow(row, headerMap) {
   const documentNumber = normalizeDocumentNumber(pick(row, headerMap, 'document_number'));
   const contractNumber = cleanString(pick(row, headerMap, 'contract_number'));
-  const contractYear = Number.parseInt(pick(row, headerMap, 'contract_year'), 10);
+  const contractYear = inferContractYear(contractNumber, pick(row, headerMap, 'contract_year'));
   const contractKey = buildContractKey(contractNumber, contractYear);
+  const rawStatus = cleanString(pick(row, headerMap, 'status'));
   const normalized = {
     contract_number: contractNumber,
     contract_year: Number.isInteger(contractYear) ? contractYear : null,
@@ -99,8 +118,8 @@ function normalizeContractImportRow(row, headerMap) {
     current_balance: parseMoney(pick(row, headerMap, 'current_balance')),
     start_date: parseDate(pick(row, headerMap, 'start_date')),
     end_date: parseDate(pick(row, headerMap, 'end_date')),
-    status: normalizeStatus(pick(row, headerMap, 'status')),
-    external_status: cleanString(pick(row, headerMap, 'external_status')),
+    status: normalizeStatus(rawStatus),
+    external_status: cleanString(pick(row, headerMap, 'external_status')) || rawStatus,
     source: 'IMPORTACAO',
     responsibles: [
       ['ANALISTA', cleanString(pick(row, headerMap, 'analyst_name'))],
@@ -145,5 +164,6 @@ module.exports = {
   normalizeContractImportRow,
   parseMoney,
   parseDate,
-  normalizeStatus
+  normalizeStatus,
+  inferContractYear
 };

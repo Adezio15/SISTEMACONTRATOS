@@ -117,15 +117,16 @@
   <% } %>
   <div class="table-wrap">
     <table>
-      <thead><tr><th>Categoria</th><th>Arquivo</th><th>Usuario</th><th>Data</th></tr></thead>
+      <thead><tr><th>Categoria</th><th>Arquivo</th><th>Usuario</th><th>Data</th><th>Acoes</th></tr></thead>
       <tbody>
-        <% if (documents.length === 0) { %><tr><td colspan="4" class="empty-state">Nenhum documento anexado.</td></tr><% } %>
+        <% if (documents.length === 0) { %><tr><td colspan="5" class="empty-state">Nenhum documento anexado.</td></tr><% } %>
         <% documents.forEach((document) => { %>
           <tr>
             <td><%= document.category %></td>
             <td><%= document.original_name %><small class="inline-muted"><%= document.description || '' %></small></td>
             <td><%= document.user_name || '-' %></td>
             <td><%= formatDate(document.created_at) %></td>
+            <td><a class="table-link" href="/contratos/<%= contract.id %>/documentos/<%= document.id %>/download">Baixar</a></td>
           </tr>
         <% }) %>
       </tbody>

@@ -9,9 +9,44 @@ async function findByRegistration(registration) {
   return rows[0] || null;
 }
 
+async function findByEmail(email) {
+  const { rows } = await getPool().query(
+    'select * from users where lower(email) = lower($1) limit 1',
+    [email]
+  );
+
+  return rows[0] || null;
+}
+
 async function findById(id) {
   const { rows } = await getPool().query(
     'select * from users where id = $1 limit 1',
+    [id]
+  );
+
+  return rows[0] || null;
+}
+
+async function findByIdWithRole(id) {
+  const { rows } = await getPool().query(
+    `
+      select
+        u.id,
+        u.full_name,
+        u.registration,
+        u.email,
+        u.position,
+        u.role_id,
+        u.active,
+        u.created_at,
+        u.updated_at,
+        r.name as role_name,
+        r.key as role_key
+      from users u
+      join roles r on r.id = u.role_id
+      where u.id = $1
+      limit 1
+    `,
     [id]
   );
 
@@ -91,6 +126,34 @@ async function createUser(user) {
   return rows[0];
 }
 
+async function updateUser(userId, user) {
+  const { rows } = await getPool().query(
+    `
+      update users set
+        full_name = $2,
+        registration = $3,
+        email = $4,
+        position = $5,
+        role_id = $6,
+        active = $7,
+        updated_at = now()
+      where id = $1
+      returning id
+    `,
+    [
+      userId,
+      user.fullName,
+      user.registration,
+      user.email,
+      user.position,
+      user.roleId,
+      user.active
+    ]
+  );
+
+  return rows[0] || null;
+}
+
 async function updatePassword(userId, passwordHash) {
   await getPool().query(
     'update users set password_hash = $2, updated_at = now() where id = $1',
@@ -100,9 +163,12 @@ async function updatePassword(userId, passwordHash) {
 
 module.exports = {
   findByRegistration,
+  findByEmail,
   findById,
+  findByIdWithRole,
   findByRegistrationWithRole,
   listUsers,
   createUser,
+  updateUser,
   updatePassword
 };

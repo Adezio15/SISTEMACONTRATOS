@@ -16,6 +16,7 @@ const reportRoutes = require('./routes/reportRoutes');
 const settingsRoutes = require('./routes/settingsRoutes');
 const taskRoutes = require('./routes/taskRoutes');
 const userRoutes = require('./routes/userRoutes');
+const apiRoutes = require('./routes/apiRoutes');
 
 function createApp() {
   const app = express();
@@ -41,6 +42,7 @@ function createApp() {
   }));
 
   app.use(healthRoutes);
+  app.use(apiRoutes);
 
   app.get('/', (req, res) => {
     if (req.session.user) {

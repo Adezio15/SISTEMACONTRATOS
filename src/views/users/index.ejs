@@ -14,6 +14,7 @@
           <th>Cargo</th>
           <th>Perfil</th>
           <th>Status</th>
+          <th>Acoes</th>
         </tr>
       </thead>
       <tbody>
@@ -25,6 +26,7 @@
             <td><%= user.position || '-' %></td>
             <td><%= user.role_name %></td>
             <td><span class="badge <%= user.active ? 'badge-success' : 'badge-muted' %>"><%= user.active ? 'Ativo' : 'Inativo' %></span></td>
+            <td><a class="table-link" href="/usuarios/<%= user.id %>/editar">Editar</a></td>
           </tr>
         <% }) %>
       </tbody>

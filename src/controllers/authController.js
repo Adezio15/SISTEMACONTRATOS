@@ -41,9 +41,17 @@ function showForgotPassword(req, res) {
   });
 }
 
-function requestPasswordReset(req, res) {
-  setFlash(req, 'info', 'Funcionalidade preparada para envio por e-mail na proxima etapa.');
-  res.redirect('/login');
+async function requestPasswordReset(req, res, next) {
+  try {
+    const result = await userService.requestPasswordReset({
+      registration: req.body.registration
+    });
+
+    setFlash(req, result.ok ? 'success' : 'error', result.message);
+    return res.redirect(result.ok ? '/login' : '/senha/esqueci');
+  } catch (error) {
+    return next(error);
+  }
 }
 
 function showChangePassword(req, res) {

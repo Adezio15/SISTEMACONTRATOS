@@ -66,6 +66,7 @@ module.exports = {
   index,
   show,
   addDocument,
+  downloadDocument,
   addTask,
   addNote
 };
@@ -84,6 +85,22 @@ async function addDocument(req, res, next) {
     res.redirect(`/contratos/${req.params.id}#documentos`);
   } catch (error) {
     next(error);
+  }
+}
+
+async function downloadDocument(req, res, next) {
+  try {
+    const document = await documentService.getDocumentForDownload(req.params.documentId);
+
+    if (!document || document.contract_id !== req.params.id) {
+      return res.status(404).render('errors/404', {
+        title: 'Documento nao encontrado'
+      });
+    }
+
+    return res.download(document.storage_path, document.original_name);
+  } catch (error) {
+    return next(error);
   }
 }
 

@@ -1,0 +1,23 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: sistema_contratos_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: sesc_contratos
+      POSTGRES_USER: sesc_contratos
+      POSTGRES_PASSWORD: local_dev_password
+      TZ: America/Fortaleza
+      PGTZ: America/Fortaleza
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sesc_contratos -d sesc_contratos"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  postgres_data:

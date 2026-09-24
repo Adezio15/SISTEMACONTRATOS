@@ -3,6 +3,13 @@ function requireRole(allowedRoles) {
     const roleKey = req.session.user?.roleKey;
 
     if (!roleKey || !allowedRoles.includes(roleKey)) {
+      if (String(req.path || '').startsWith('/api/')) {
+        return res.status(403).json({
+          ok: false,
+          error: 'access_denied'
+        });
+      }
+
       return res.status(403).render('errors/403', {
         title: 'Acesso negado'
       });
@@ -17,6 +24,13 @@ function requirePermission(permissionKey) {
     const permissions = req.session.user?.permissions || [];
 
     if (!permissions.includes(permissionKey)) {
+      if (String(req.path || '').startsWith('/api/')) {
+        return res.status(403).json({
+          ok: false,
+          error: 'access_denied'
+        });
+      }
+
       return res.status(403).render('errors/403', {
         title: 'Acesso negado'
       });

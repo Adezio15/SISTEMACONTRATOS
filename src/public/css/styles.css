@@ -282,6 +282,16 @@ textarea {
   margin-bottom: 16px;
 }
 
+.spacing-top {
+  margin-top: 16px;
+}
+
+.actions-cell {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
 .filters-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(180px, 1fr));

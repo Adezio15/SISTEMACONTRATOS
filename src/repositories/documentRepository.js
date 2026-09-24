@@ -17,6 +17,23 @@ async function listDocuments(contractId) {
   return rows;
 }
 
+async function findDocumentById(documentId) {
+  const { rows } = await getPool().query(
+    `
+      select
+        cd.*,
+        c.contract_key
+      from contract_documents cd
+      join contracts c on c.id = cd.contract_id
+      where cd.id = $1
+      limit 1
+    `,
+    [documentId]
+  );
+
+  return rows[0] || null;
+}
+
 async function createDocument(document) {
   await getPool().query(
     `
@@ -47,5 +64,6 @@ async function createDocument(document) {
 
 module.exports = {
   listDocuments,
+  findDocumentById,
   createDocument
 };

@@ -1,4 +1,8 @@
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const os = require('node:os');
+const path = require('node:path');
+const XLSX = require('xlsx');
 
 const { hashPassword, verifyPassword } = require('../src/utils/password');
 const { requirePermission } = require('../src/middlewares/permissions');
@@ -14,8 +18,11 @@ const {
   parseMoney,
   parseDate,
   normalizeStatus,
-  normalizeContractImportRow
+  normalizeContractImportRow,
+  inferContractYear
 } = require('../src/services/contractImportNormalizer');
+const { readContractsFromSpreadsheet } = require('../src/dataSources/excelContractSource');
+const { buildHeaderMap } = require('../src/services/importMappingService');
 const {
   compareContract,
   summarizeRows
@@ -144,7 +151,15 @@ test('parseDate normaliza data brasileira para ISO', () => {
 
 test('normalizeStatus aceita variacoes e retorna status valido', () => {
   assert.equal(normalizeStatus('encerrado'), 'ENCERRADO');
+  assert.equal(normalizeStatus('Ativo cobrança e faturamento'), 'ATIVO');
+  assert.equal(normalizeStatus('Cancelado pelo fornecedor'), 'CANCELADO');
   assert.equal(normalizeStatus('desconhecido'), 'ATIVO');
+});
+
+test('inferContractYear extrai exercicio de codigo corporativo', () => {
+  assert.equal(inferContractYear('RN-2026-CS-124'), 2026);
+  assert.equal(inferContractYear('045', '2025'), 2025);
+  assert.equal(inferContractYear('sem ano'), null);
 });
 
 test('normalizeContractImportRow gera contrato normalizado e responsaveis', () => {
@@ -174,6 +189,48 @@ test('normalizeContractImportRow gera contrato normalizado e responsaveis', () =
   assert.equal(result.normalized.contract_key, '045/2026');
   assert.equal(result.normalized.document_number, '12345678000190');
   assert.equal(result.normalized.responsibles[0].role, 'ANALISTA');
+});
+
+test('readContractsFromSpreadsheet encontra cabecalho apos titulo do relatorio', () => {
+  const workbook = XLSX.utils.book_new();
+  const worksheet = XLSX.utils.aoa_to_sheet([
+    ['Data: 09/09/2026 Hora: 09:16:03 - Listagem de Contratos - Por Periodo'],
+    [],
+    ['Cd.Contrato', 'Contrato', 'Tipo de Contrato', 'Vl. Contrato', 'Filial', '', 'Fornecedor', 'Inicio Vigencia', 'Validade', 'Validade (meses)', 'Status'],
+    ['RN-2026-CS-124', 'SELECAO DE ESPETACULOS EM ARTES CENICAS', 'CONTRATO DE SERVICO', 10000, 'SESC SEDE', '', 'ASSOCIACAO CULTURAL TRAPIA', '18/08/2026', '18/02/2027', 6, 'Ativo cobranca e faturamento']
+  ]);
+  const filePath = path.join(os.tmpdir(), `contracts-import-${Date.now()}.xlsx`);
+
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet');
+  XLSX.writeFile(workbook, filePath);
+
+  try {
+    const rows = readContractsFromSpreadsheet(filePath);
+    const headerMap = buildHeaderMap(rows[0]);
+    const result = normalizeContractImportRow(rows[0], headerMap);
+
+    assert.equal(rows.length, 1);
+    assert.equal(headerMap.contract_number, 'Cd.Contrato');
+    assert.equal(headerMap.object, 'Contrato');
+    assert.equal(headerMap.initial_value, 'Vl. Contrato');
+    assert.equal(headerMap.unit, 'Filial');
+    assert.equal(headerMap.end_date, 'Validade');
+    assert.deepEqual(result.errors, []);
+    assert.equal(result.normalized.contract_number, 'RN-2026-CS-124');
+    assert.equal(result.normalized.contract_year, 2026);
+    assert.equal(result.normalized.contract_key, 'RN-2026-CS-124/2026');
+    assert.equal(result.normalized.object, 'SELECAO DE ESPETACULOS EM ARTES CENICAS');
+    assert.equal(result.normalized.supplier_name, 'ASSOCIACAO CULTURAL TRAPIA');
+    assert.equal(result.normalized.initial_value, 10000);
+    assert.equal(result.normalized.unit, 'SESC SEDE');
+    assert.equal(result.normalized.end_date, '2027-02-18');
+    assert.equal(result.normalized.status, 'ATIVO');
+    assert.equal(result.normalized.external_status, 'Ativo cobranca e faturamento');
+    assert.equal(result.normalized.document_number, null);
+    assert.equal(result.normalized.current_balance, null);
+  } finally {
+    fs.rmSync(filePath, { force: true });
+  }
 });
 
 test('compareContract identifica mudancas em campos externos', () => {
