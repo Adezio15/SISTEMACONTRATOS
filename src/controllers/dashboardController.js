@@ -7,6 +7,10 @@ async function index(req, res, next) {
     return res.redirect('/dashboard/tv');
   }
 
+  if (['ADMINISTRADOR', 'GERENCIA'].includes(req.session.user.roleKey)) {
+    return res.redirect('/dashboard/gerencia');
+  }
+
   try {
     const dashboard = await dashboardService.getAnalystDashboard(req.session.user);
 
