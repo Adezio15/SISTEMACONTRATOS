@@ -265,6 +265,7 @@ async function confirmImport({ importId, userId }) {
       client
     );
     const existingByKey = new Map(existingContracts.map((contract) => [contract.contract_key, contract]));
+    const historyEntries = [];
 
     for (const row of processableRows) {
       const normalized = row.normalized_data;
@@ -275,26 +276,23 @@ async function confirmImport({ importId, userId }) {
       if (row.action === 'NEW' || !existing) {
         const contract = await importRepository.insertContract(normalized, companyId, client);
         await importRepository.insertResponsibles(contract.id, normalized.responsibles, client);
-        await importRepository.insertHistoryEntries(
-          historyForNewContract({ contract, userId, importId }),
-          client
-        );
+        historyEntries.push(...historyForNewContract({ contract, userId, importId }));
         continue;
       }
 
       const contract = await importRepository.updateContract(existing.id, normalized, companyId, client);
       await importRepository.insertResponsibles(contract.id, normalized.responsibles, client);
-      await importRepository.insertHistoryEntries(
-        historyForDifferences({
+      historyEntries.push(
+        ...historyForDifferences({
           contractId: contract.id,
           differences,
           userId,
           importId
-        }),
-        client
+        })
       );
     }
 
+    await importRepository.insertHistoryEntries(historyEntries, client);
     await importRepository.setImportStatus(importId, 'COMPLETED', client);
     await client.query('commit');
 

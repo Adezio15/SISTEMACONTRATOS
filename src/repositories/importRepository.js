@@ -305,7 +305,29 @@ async function updateContract(contractId, contract, companyId, client) {
 }
 
 async function insertHistoryEntries(entries, client) {
-  for (const entry of entries) {
+  if (!entries || entries.length === 0) {
+    return;
+  }
+
+  const chunkSize = 500;
+
+  for (let start = 0; start < entries.length; start += chunkSize) {
+    const chunk = entries.slice(start, start + chunkSize);
+    const params = [];
+    const values = chunk.map((entry, index) => {
+      const offset = index * 6;
+      params.push(
+        entry.contractId,
+        entry.userId,
+        entry.fieldName,
+        entry.oldValue,
+        entry.newValue,
+        entry.importId
+      );
+
+      return `($${offset + 1}, $${offset + 2}, $${offset + 3}, $${offset + 4}, $${offset + 5}, 'IMPORTACAO', $${offset + 6})`;
+    });
+
     await db(client).query(
       `
         insert into contract_history (
@@ -317,16 +339,9 @@ async function insertHistoryEntries(entries, client) {
           change_source,
           import_id
         )
-        values ($1, $2, $3, $4, $5, 'IMPORTACAO', $6)
+        values ${values.join(', ')}
       `,
-      [
-        entry.contractId,
-        entry.userId,
-        entry.fieldName,
-        entry.oldValue,
-        entry.newValue,
-        entry.importId
-      ]
+      params
     );
   }
 }
