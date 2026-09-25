@@ -87,6 +87,10 @@ function summarizeRows(rows) {
   });
 }
 
+function getProcessableRows(rows) {
+  return rows.filter((row) => ['NEW', 'UPDATE'].includes(row.action));
+}
+
 async function createPreview({ file, userId }) {
   if (!hasDatabaseConfig()) {
     throw new Error('Modo local demo: configure DATABASE_URL para validar e importar arquivos.');
@@ -247,14 +251,15 @@ async function confirmImport({ importId, userId }) {
       throw new Error('Importacao nao esta pronta para confirmacao.');
     }
 
-    if (importRecord.error_records > 0) {
-      throw new Error('Corrija as linhas com erro antes de confirmar a importacao.');
-    }
-
     await importRepository.setImportStatus(importId, 'PROCESSING', client);
 
     const rows = await importRepository.listImportRows(importId, client);
-    const processableRows = rows.filter((row) => ['NEW', 'UPDATE'].includes(row.action));
+    const processableRows = getProcessableRows(rows);
+
+    if (processableRows.length === 0) {
+      throw new Error('Nao ha linhas validas para confirmar nesta importacao.');
+    }
+
     const existingContracts = await importRepository.findContractsByKeys(
       processableRows.map((row) => row.contract_key),
       client
@@ -314,5 +319,6 @@ module.exports = {
   getPreview,
   confirmImport,
   compareContract,
-  summarizeRows
+  summarizeRows,
+  getProcessableRows
 };

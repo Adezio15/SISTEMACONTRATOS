@@ -25,7 +25,8 @@ const { readContractsFromSpreadsheet } = require('../src/dataSources/excelContra
 const { buildHeaderMap } = require('../src/services/importMappingService');
 const {
   compareContract,
-  summarizeRows
+  summarizeRows,
+  getProcessableRows
 } = require('../src/services/contractImportService');
 const {
   daysUntil,
@@ -256,6 +257,20 @@ test('summarizeRows contabiliza a previa da importacao', () => {
   assert.equal(summary.updatedRecords, 1);
   assert.equal(summary.unchangedRecords, 1);
   assert.equal(summary.errorRecords, 1);
+});
+
+test('getProcessableRows permite confirmar linhas validas mesmo com erros na previa', () => {
+  const rows = [
+    { action: 'NEW', contract_key: 'A/2026' },
+    { action: 'ERROR', contract_key: null },
+    { action: 'UPDATE', contract_key: 'B/2026' },
+    { action: 'UNCHANGED', contract_key: 'C/2026' }
+  ];
+
+  assert.deepEqual(
+    getProcessableRows(rows).map((row) => row.contract_key),
+    ['A/2026', 'B/2026']
+  );
 });
 
 test('daysUntil calcula diferenca de dias sem horario', () => {

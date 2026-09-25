@@ -9,7 +9,7 @@
   <div>
     <span>Status</span>
     <strong><%= importRecord.status %></strong>
-    <small>Alteracoes definitivas so ocorrem apos confirmacao</small>
+    <small>Alteracoes definitivas so ocorrem apos confirmacao das linhas validas</small>
   </div>
 </section>
 
@@ -50,7 +50,7 @@
   <a class="button button-ghost" href="/importacoes">Cancelar</a>
   <% if (importRecord.status === 'READY') { %>
     <form action="/importacoes/<%= importRecord.id %>/confirmar" method="post">
-      <button class="button button-primary" type="submit" <%= importRecord.error_records > 0 ? 'disabled' : '' %>>Confirmar importacao</button>
+      <button class="button button-primary" type="submit">Confirmar importacao</button>
     </form>
   <% } %>
 </section>
