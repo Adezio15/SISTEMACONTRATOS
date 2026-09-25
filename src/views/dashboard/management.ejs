@@ -1,43 +1,43 @@
 <%- include('../layouts/admin-start') %>
 
-<div class="dashboard-page">
-  <section class="metric-grid management-metrics dashboard-metrics">
-    <article class="metric-card metric-card-primary">
+<div class="dashboard-page management-dashboard-page">
+  <section class="metric-grid management-metrics dashboard-metrics executive-metrics">
+    <article class="metric-card executive-card executive-card-green">
       <span>Contratos ativos</span>
       <strong><%= dashboard.metrics.active_contracts %></strong>
       <small>em acompanhamento</small>
     </article>
-    <article class="metric-card metric-card-info">
+    <article class="metric-card executive-card executive-card-blue">
       <span>Total de contratos</span>
       <strong><%= dashboard.metrics.total_contracts %></strong>
       <small>base atual</small>
     </article>
-    <article class="metric-card metric-card-warning">
+    <article class="metric-card executive-card executive-card-amber">
       <span>Vencem em 90 dias</span>
       <strong><%= dashboard.metrics.expiring_90_days %></strong>
       <small>contratos ativos</small>
     </article>
-    <article class="metric-card metric-card-danger">
+    <article class="metric-card executive-card executive-card-red">
       <span>Vencem em 30 dias</span>
       <strong><%= dashboard.metrics.expiring_30_days %></strong>
       <small>maior urgencia</small>
     </article>
-    <article class="metric-card metric-card-warning">
+    <article class="metric-card executive-card executive-card-amber">
       <span>Saldo <= 30%</span>
       <strong><%= dashboard.metrics.balance_warning_contracts %></strong>
       <small>atencao financeira</small>
     </article>
-    <article class="metric-card metric-card-danger">
+    <article class="metric-card executive-card executive-card-red-strong">
       <span>Saldo <= 10%</span>
       <strong><%= dashboard.metrics.balance_critical_contracts %></strong>
       <small>critico</small>
     </article>
-    <article class="metric-card metric-card-success">
+    <article class="metric-card executive-card executive-card-teal">
       <span>Contratos novos</span>
       <strong><%= dashboard.metrics.new_contracts %></strong>
       <small>ultimos 30 dias</small>
     </article>
-    <article class="metric-card metric-card-neutral">
+    <article class="metric-card executive-card executive-card-purple">
       <span>Pendencias</span>
       <strong><%= dashboard.metrics.pending_tasks %></strong>
       <small>pendentes ou em andamento</small>
@@ -53,14 +53,101 @@
       <span>Saldo total disponivel</span>
       <strong><%= formatCurrency(dashboard.metrics.total_available_balance) %></strong>
     </article>
+    <article>
+      <span>Valor utilizado</span>
+      <strong><%= formatCurrency(dashboard.metrics.total_used_value) %></strong>
+    </article>
   </section>
 
-  <section class="charts-grid">
-    <%- include('../partials/bar-chart', { title: 'Contratos por status', items: dashboard.charts.byStatus }) %>
-    <%- include('../partials/bar-chart', { title: 'Contratos por unidade', items: dashboard.charts.byUnit }) %>
-    <%- include('../partials/bar-chart', { title: 'Contratos por analista', items: dashboard.charts.byAnalyst }) %>
-    <%- include('../partials/bar-chart', { title: 'Faixa de vencimento', items: dashboard.charts.byExpirationRange }) %>
-    <%- include('../partials/bar-chart', { title: 'Faixa de saldo', items: dashboard.charts.byBalanceRange }) %>
+  <%
+    const toChart = (items, urls = {}) => ({
+      labels: items.map((item) => item.label),
+      values: items.map((item) => Number(item.value || 0)),
+      urls: items.map((item) => urls[item.label] || null)
+    });
+    const dateUrl = (fromOffset, toOffset) => {
+      const format = (date) => date.toISOString().slice(0, 10);
+      const today = new Date();
+      const params = new URLSearchParams();
+      if (fromOffset !== null) {
+        const from = new Date(today);
+        from.setDate(today.getDate() + fromOffset);
+        params.set('endFrom', format(from));
+      }
+      if (toOffset !== null) {
+        const to = new Date(today);
+        to.setDate(today.getDate() + toOffset);
+        params.set('endTo', format(to));
+      }
+      params.set('status', 'ATIVO');
+      return `/contratos?${params.toString()}`;
+    };
+    const chartPayload = [
+      {
+        key: 'status',
+        title: 'Contratos por Status',
+        centerLabel: 'contratos',
+        ...toChart(dashboard.charts.byStatus, Object.fromEntries(
+          dashboard.charts.byStatus.map((item) => [item.label, `/contratos?status=${encodeURIComponent(item.label)}`])
+        ))
+      },
+      {
+        key: 'unit',
+        title: 'Contratos por Unidade',
+        centerLabel: 'contratos',
+        ...toChart(dashboard.charts.byUnit, Object.fromEntries(
+          dashboard.charts.byUnit
+            .filter((item) => item.label !== 'Outras' && item.label !== 'Sem unidade')
+            .map((item) => [item.label, `/contratos?unit=${encodeURIComponent(item.label)}`])
+        ))
+      },
+      {
+        key: 'analyst',
+        title: 'Contratos por Analista',
+        centerLabel: 'contratos',
+        ...toChart(dashboard.charts.byAnalyst, Object.fromEntries(
+          dashboard.charts.byAnalyst.map((item) => [item.label, `/contratos?analyst=${encodeURIComponent(item.label)}`])
+        ))
+      },
+      {
+        key: 'expiration',
+        title: 'Faixa de Vencimento',
+        centerLabel: 'contratos',
+        ...toChart(dashboard.charts.byExpirationRange, {
+          'Vencidos': '/contratos?endTo=' + new Date(Date.now() - 86400000).toISOString().slice(0, 10),
+          '0-30 dias': dateUrl(0, 30),
+          '31-60 dias': dateUrl(31, 60),
+          '61-90 dias': dateUrl(61, 90),
+          'Acima de 90 dias': dateUrl(91, null)
+        })
+      },
+      {
+        key: 'balance',
+        title: 'Situacao do Saldo',
+        centerLabel: 'contratos',
+        ...toChart(dashboard.charts.byBalanceRange, {
+          'Critico <= 10%': '/contratos?balancePercentageMax=10',
+          'Atencao 11-30%': '/contratos?balancePercentageMax=30'
+        })
+      },
+      {
+        key: 'new-contracts',
+        title: 'Contratos Novos / Periodo',
+        centerLabel: 'contratos',
+        ...toChart(dashboard.charts.byNewContracts)
+      }
+    ];
+  %>
+
+  <section class="charts-grid doughnut-grid">
+    <% chartPayload.forEach((chart) => { %>
+      <article class="content-card chart-card doughnut-card">
+        <h2><%= chart.title %></h2>
+        <div class="doughnut-frame">
+          <canvas id="chart-<%= chart.key %>" data-dashboard-chart="<%= chart.key %>"></canvas>
+        </div>
+      </article>
+    <% }) %>
   </section>
 
   <section class="dashboard-grid management-lists">
@@ -134,4 +221,9 @@
   </section>
 </div>
 
+<script>
+  window.__MANAGEMENT_DASHBOARD_CHARTS__ = <%- JSON.stringify(chartPayload).replace(/</g, '\\u003c') %>;
+</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script src="/js/management-dashboard.js"></script>
 <%- include('../layouts/admin-end') %>

@@ -33,6 +33,7 @@ function emptyManagementDashboard() {
       new_contracts: 0,
       total_contract_value: 0,
       total_available_balance: 0,
+      total_used_value: 0,
       pending_tasks: 0
     },
     charts: {
@@ -40,7 +41,8 @@ function emptyManagementDashboard() {
       byUnit: [],
       byAnalyst: [],
       byExpirationRange: [],
-      byBalanceRange: []
+      byBalanceRange: [],
+      byNewContracts: []
     },
     expiringContracts: [],
     criticalBalanceContracts: []
@@ -90,7 +92,10 @@ async function getManagementDashboard() {
   ]);
 
   return {
-    metrics,
+    metrics: {
+      ...metrics,
+      total_used_value: Number(metrics.total_contract_value || 0) - Number(metrics.total_available_balance || 0)
+    },
     charts,
     expiringContracts,
     criticalBalanceContracts

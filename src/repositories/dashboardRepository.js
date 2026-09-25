@@ -255,7 +255,8 @@ async function getManagementCharts() {
     byUnit,
     byAnalyst,
     byExpirationRange,
-    byBalanceRange
+    byBalanceRange,
+    byNewContracts
   ] = await Promise.all([
     queryChart(`
       select status as label, count(*)::int as value
@@ -264,20 +265,34 @@ async function getManagementCharts() {
       order by value desc, label asc
     `),
     queryChart(`
-      select coalesce(unit, 'Sem unidade') as label, count(*)::int as value
-      from contracts
-      group by coalesce(unit, 'Sem unidade')
-      order by value desc, label asc
-      limit 8
+      with unit_counts as (
+        select coalesce(unit, 'Sem unidade') as label, count(*)::int as value
+        from contracts
+        group by coalesce(unit, 'Sem unidade')
+      ),
+      ranked as (
+        select
+          label,
+          value,
+          row_number() over (order by value desc, label asc) as position
+        from unit_counts
+      )
+      select
+        case when position <= 7 then label else 'Outras' end as label,
+        sum(value)::int as value
+      from ranked
+      group by case when position <= 7 then label else 'Outras' end
+      order by sum(value) desc, label asc
     `),
     queryChart(`
-      select coalesce(u.full_name, cr.name, 'Sem analista') as label, count(distinct c.id)::int as value
+      select coalesce(u.full_name, cr.name) as label, count(distinct c.id)::int as value
       from contracts c
-      left join contract_responsibles cr on cr.contract_id = c.id
+      join contract_responsibles cr on cr.contract_id = c.id
         and cr.active = true
         and cr.role = 'ANALISTA'
       left join users u on u.id = cr.user_id
-      group by coalesce(u.full_name, cr.name, 'Sem analista')
+      where coalesce(u.full_name, cr.name) is not null
+      group by coalesce(u.full_name, cr.name)
       order by value desc, label asc
       limit 8
     `),
@@ -317,6 +332,15 @@ async function getManagementCharts() {
         select 'Sem valor', count(*) filter (where balance_percentage is null)::int, 4 from balances
       ) buckets
       order by sort_order asc
+    `),
+    queryChart(`
+      select label, value
+      from (
+        select 'Ultimos 30 dias' as label, count(*) filter (where created_at >= now() - interval '30 days')::int as value, 1 as sort_order from contracts
+        union all
+        select 'Anteriores', count(*) filter (where created_at < now() - interval '30 days')::int, 2 from contracts
+      ) buckets
+      order by sort_order asc
     `)
   ]);
 
@@ -325,7 +349,8 @@ async function getManagementCharts() {
     byUnit,
     byAnalyst,
     byExpirationRange,
-    byBalanceRange
+    byBalanceRange,
+    byNewContracts
   };
 }
 
