@@ -29,3 +29,38 @@ if (themeToggle) {
     setTheme(nextTheme);
   });
 }
+
+const appShell = document.querySelector('.app-shell');
+const sidebarToggle = document.querySelector('[data-sidebar-toggle]');
+
+function setSidebarCollapsed(collapsed) {
+  if (!appShell || !sidebarToggle) {
+    return;
+  }
+
+  appShell.classList.toggle('sidebar-collapsed', collapsed);
+  sidebarToggle.setAttribute('aria-pressed', String(collapsed));
+  sidebarToggle.setAttribute('aria-label', collapsed ? 'Expandir menu lateral' : 'Recuar menu lateral');
+
+  try {
+    localStorage.setItem('sidebarCollapsed', collapsed ? 'true' : 'false');
+  } catch (error) {
+    // Preferencia visual continua funcionando na sessao atual.
+  }
+}
+
+if (appShell && sidebarToggle) {
+  let savedSidebarState = 'false';
+
+  try {
+    savedSidebarState = localStorage.getItem('sidebarCollapsed') || 'false';
+  } catch (error) {
+    savedSidebarState = 'false';
+  }
+
+  setSidebarCollapsed(savedSidebarState === 'true');
+
+  sidebarToggle.addEventListener('click', () => {
+    setSidebarCollapsed(!appShell.classList.contains('sidebar-collapsed'));
+  });
+}
