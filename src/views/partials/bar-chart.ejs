@@ -7,7 +7,8 @@
     <% } %>
     <% items.forEach((item) => { %>
       <% const value = Number(item.value || 0); %>
-      <div class="bar-row">
+      <% const chartClass = (item.label || '').toString().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); %>
+      <div class="bar-row chart-row-<%= chartClass %>">
         <span class="bar-label"><%= item.label %></span>
         <div class="bar-track">
           <span class="bar-fill" style="width: <%= getBarWidth(value, maxValue) %>%"></span>

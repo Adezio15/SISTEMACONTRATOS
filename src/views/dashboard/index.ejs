@@ -16,7 +16,7 @@
       <strong><%= dashboard.metrics.critical_balance_contracts %></strong>
       <small>saldo ate 10%</small>
     </article>
-    <article class="metric-card">
+    <article class="metric-card metric-card-info">
       <span>Pendencias</span>
       <strong><%= dashboard.metrics.pending_tasks %></strong>
       <small>pendentes ou em andamento</small>
@@ -26,11 +26,41 @@
       <strong><%= dashboard.metrics.overdue_tasks %></strong>
       <small>prazo vencido</small>
     </article>
-    <article class="metric-card">
+    <article class="metric-card metric-card-success">
       <span>Novas notificacoes</span>
       <strong><%= dashboard.metrics.new_notifications %></strong>
       <small>reservado para alertas</small>
     </article>
+  </section>
+
+  <%
+    const analystExpirationChart = [
+      { label: '0-30 dias', value: dashboard.expirationBuckets.days_0_30 },
+      { label: '31-60 dias', value: dashboard.expirationBuckets.days_31_60 },
+      { label: '61-90 dias', value: dashboard.expirationBuckets.days_61_90 }
+    ];
+    const situationLabels = {
+      VENCIDO: 'Vencido',
+      VENCE_30: 'Vence em 30 dias',
+      SALDO_CRITICO: 'Saldo critico',
+      PENDENCIA_ATRASADA: 'Pendencia atrasada',
+      PENDENCIA: 'Pendencia',
+      ACOMPANHAR: 'Acompanhar'
+    };
+    const situationTotals = dashboard.priorities.reduce((totals, item) => {
+      const key = item.situation || 'ACOMPANHAR';
+      totals[key] = (totals[key] || 0) + 1;
+      return totals;
+    }, {});
+    const analystSituationChart = Object.keys(situationTotals).map((key) => ({
+      label: situationLabels[key] || key,
+      value: situationTotals[key]
+    }));
+  %>
+
+  <section class="charts-grid analyst-charts">
+    <%- include('../partials/bar-chart', { title: 'Vencimentos por faixa', items: analystExpirationChart }) %>
+    <%- include('../partials/bar-chart', { title: 'Prioridades por situacao', items: analystSituationChart }) %>
   </section>
 
   <section class="content-card dashboard-panel">

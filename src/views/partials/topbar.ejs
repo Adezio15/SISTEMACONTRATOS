@@ -11,6 +11,10 @@
         <strong><%= unreadNotifications %></strong>
       <% } %>
     </a>
+    <button class="theme-toggle" type="button" data-theme-toggle aria-label="Alternar tema">
+      <span class="theme-toggle-icon" aria-hidden="true"></span>
+      <span data-theme-label>Claro</span>
+    </button>
     <span><%= currentUser.name %></span>
     <small><%= currentUser.roleName %></small>
     <form action="/logout" method="post">

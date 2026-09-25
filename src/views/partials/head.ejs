@@ -4,6 +4,18 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title><%= title ? `${title} | Contratos Sesc RN` : 'Contratos Sesc RN' %></title>
+  <script>
+    (() => {
+      let savedTheme = null;
+      try {
+        savedTheme = localStorage.getItem('theme');
+      } catch (error) {
+        savedTheme = null;
+      }
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      document.documentElement.dataset.theme = savedTheme || (prefersDark ? 'dark' : 'light');
+    })();
+  </script>
   <link rel="stylesheet" href="/css/styles.css">
 </head>
 <body>
